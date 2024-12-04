@@ -64,7 +64,7 @@ The following proposals assume the throughput advice is transmitted from network
 The traffic throttling network element SHOULD default marks the 4-tuple flow as conformant when its TRAIN packet is received by the QUIC client. The network element SHOULD not disable traffic shapers until it confirms the QUIC client has acked the SCONE signal. Since the network element lacks visibility into QUIC packets containing ACK frames, it MAY only deduce the QUIC client's receipt of the signal by observing the cessation of TRAIN packet retransmissions by the QUIC server. In the case where the network element gives an unrealistically low throughput advice and the QUIC client decides to not conform, the client SHOULD not ack the TRAIN packets. The SCONE protocol SHOULD also specify a limit on the number of SCONE packet retransmissions. When the retransmission limit is reached, the QUIC server MUST not retransmit any more TRAIN packets, and the network element SHOULD consider the current flow ineligible for SCONE and keeps its throttling device on.
 
 
-# Explicit Signal
+## Explicit Signal
 
 The QUIC client SHOULD signal conformance by echoing back the TRAIN packet. Upon receiving the TRAIN packet, if the decision is to conform, the QUIC client SHOULD send back the same TRAIN packet along with its ACKs to the QUIC server. When the client-initated TRAIN packet reaches the network element, it SHOULD be dropped and throttling devices SHOULD be disabled. In the case where the QUIC client decides to not conform, it SHOULD NOT echo the TRAIN packet back. Since the network element never receives the conformance signal, it keeps its throttling devices on.
 
