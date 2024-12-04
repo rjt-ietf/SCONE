@@ -1,0 +1,189 @@
+
+
+
+
+Standard Communication with Network Elements                     R. Tang
+Internet-Draft                                                    Google
+Intended status: Informational                           4 December 2024
+Expires: 7 June 2025
+
+
+                  Client Conformance Signal for SCONE
+               draft-rjt-scone-conformance-signal-latest
+
+Abstract
+
+   This document proposes conformance signals to be sent by QUIC clients
+   to indicate whether they are able to adapt to the bitrate indicated
+   by the SCONE signal, so that communication service providers MAY stop
+   policing.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://rjt-
+   ietf.github.io/SCONE/draft-rjt-scone-conformance-signal.html.  Status
+   information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-rjt-scone-conformance-signal/.
+
+   Discussion of this document takes place on the Standard Communication
+   with Network Elements Working Group mailing list
+   (mailto:scone@ietf.org), which is archived at
+   https://mailarchive.ietf.org/arch/browse/scone.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/scone/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/rjt-ietf/SCONE.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 7 June 2025.
+
+Copyright Notice
+
+   Copyright (c) 2024 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Proposals
+     3.1.  Implicit Signal
+     3.2.  Explicit Signal
+   4.  Security Considerations
+   5.  IANA Considerations
+   6.  Normative References
+   Author's Address
+
+1.  Introduction
+
+   As outlined in the charter, the primary objective of SCONE is to
+   facilitate the communication of throughput suggestions between
+   traffic throttling network elements and QUIC endpoints.  One of the
+   main motivations is the desire to disable traffic shapers and
+   policers when possible.  However, the ability for communication
+   service providers (CSPs) to unidirectionally send throughput advice
+   signals to QUIC endpoints does not provide the CSPs with information
+   on whether the QUIC endpoints are conforming to the suggested
+   throughput.  As a result, the CSP has no assurance to disable
+   throttling.
+
+   A paper
+   (https://static.googleusercontent.com/media/research.google.com/
+   en//pubs/archive/45411.pdf) was published on the prevalence and
+   harmfulness of throughput throttling.  From an ISP's perspective, it
+   requires additional machine resources to run traffic shapers and
+   policers, and dropped packets result in waste of network bandwidth.
+   From a QUIC server's perspective, retransmissions incur extra costs
+   to server resources.  From a QUIC client's perspective, packet loss
+   harms the user's quality of experience.  Although communicated
+   throughput advice SHOULD prevent packets from being dropped by
+   traffic policers most of the time, short-duration bursts are common
+   within certain types of network connections, causing the problems
+   mentioned above.
+
+   In addition to determining the format and delivery method for
+   throughput advice, the working group should also establish the
+   conditions under which CSPs SHOULD deactivate their traffic shapers
+   and transition into trust-and-verify mode, where average throughputs
+   are sampled to make sure the content and application providers (CAPs)
+   are behaving as expected.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+3.  Proposals
+
+   The following proposals assume the throughput advice is transmitted
+   from network elements to QUIC clients in the format of a TRAIN
+   (https://datatracker.ietf.org/doc/draft-thomson-scone-train-
+   protocol/) packet.  As the technical design of SCONE evolves, the
+   proposals in this draft MAY evolve as well.  If the reasoning in this
+   draft is well received, conformance signals MAY also be integrated
+   into the SCONE technical solution proposal drafts.
+
+3.1.  Implicit Signal
+
+   The traffic throttling network element SHOULD default marks the
+   4-tuple flow as conformant when its TRAIN packet is received by the
+   QUIC client.  The network element SHOULD not disable traffic shapers
+   until it confirms the QUIC client has acked the SCONE signal.  Since
+   the network element lacks visibility into QUIC packets containing ACK
+   frames, it MAY only deduce the QUIC client's receipt of the signal by
+   observing the cessation of TRAIN packet retransmissions by the QUIC
+   server.  In the case where the network element gives an
+   unrealistically low throughput advice and the QUIC client decides to
+   not conform, the client SHOULD not ack the TRAIN packets.  The SCONE
+   protocol SHOULD also specify a limit on the number of SCONE packet
+   retransmissions.  When the retransmission limit is reached, the QUIC
+   server MUST not retransmit any more TRAIN packets, and the network
+   element SHOULD consider the current flow ineligible for SCONE and
+   keeps its throttling device on.
+
+3.2.  Explicit Signal
+
+   The QUIC client SHOULD signal conformance by echoing back the TRAIN
+   packet.  Upon receiving the TRAIN packet, if the decision is to
+   conform, the QUIC client SHOULD send back the same TRAIN packet along
+   with its ACKs to the QUIC server.  When the client-initated TRAIN
+   packet reaches the network element, it SHOULD be dropped and
+   throttling devices SHOULD be disabled.  In the case where the QUIC
+   client decides to not conform, it SHOULD NOT echo the TRAIN packet
+   back.  Since the network element never receives the conformance
+   signal, it keeps its throttling devices on.
+
+4.  Security Considerations
+
+   The transmission of the conformance signal must employ the same
+   security protection mechanism utilized for the original SCONE
+   packets.
+
+5.  IANA Considerations
+
+   This document has no IANA actions.
+
+6.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+Author's Address
+
+   Renjie Tang
+   Google
+   Email: rjt.ietf@gmail.com
