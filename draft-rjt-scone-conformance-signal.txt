@@ -73,10 +73,10 @@ Table of Contents
    2.  Conventions and Definitions
    3.  Proposals
      3.1.  Implicit Signal
-   4.  Explicit Signal
-   5.  Security Considerations
-   6.  IANA Considerations
-   7.  Normative References
+     3.2.  Explicit Signal
+   4.  Security Considerations
+   5.  IANA Considerations
+   6.  Normative References
    Author's Address
 
 1.  Introduction
@@ -149,7 +149,7 @@ Table of Contents
    element SHOULD consider the current flow ineligible for SCONE and
    keeps its throttling device on.
 
-4.  Explicit Signal
+3.2.  Explicit Signal
 
    The QUIC client SHOULD signal conformance by echoing back the TRAIN
    packet.  Upon receiving the TRAIN packet, if the decision is to
@@ -161,17 +161,17 @@ Table of Contents
    back.  Since the network element never receives the conformance
    signal, it keeps its throttling devices on.
 
-5.  Security Considerations
+4.  Security Considerations
 
    The transmission of the conformance signal must employ the same
    security protection mechanism utilized for the original SCONE
    packets.
 
-6.  IANA Considerations
+5.  IANA Considerations
 
    This document has no IANA actions.
 
-7.  Normative References
+6.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
